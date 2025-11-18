@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iRPPhone - FiveM Style Ultime</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: background-color 0.3s;
+        }
+
+        .iphone {
+            width: 430px;
+            height: 932px;
+            background: #000;
+            border-radius: 55px;
+            padding: 12px;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 45px;
+            position: relative;
+            overflow: hidden;
+            transition: background 0.3s;
+        }
+
+        .notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 160px;
+            height: 37px;
+            background: #000;
+            border-radius: 0 0 25px 25px;
+            z-index: 1000;
+        }
+        
+        /* --- SETUP SCREEN --- */
+        .setup-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #007aff, #0051d5);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 50px;
+            color: white;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+        .setup-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        .setup-title { font-size: 36px; font-weight: 700; margin-bottom: 10px; }
+        .setup-subtitle { font-size: 18px; margin-bottom: 40px; opacity: 0.8; }
+        .setup-input {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        .setup-input::placeholder { color: rgba(255, 255, 255, 0.7); }
+        .setup-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            background: white;
+            color: #007aff;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        /* --- STATUT BARRE & BATTERIE --- */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 25px 0 25px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 40px;
+            position: relative;
+            z-index: 10;
+        }
+        .time { font-weight: 700; }
+        .status-icons { display: flex; align-items: center; gap: 5px; }
+        .wifi-icon::before { content: '📶'; font-size: 14px; }
+        .battery-icon { width: 25px; height: 12px; border: 1px solid white; border-radius: 3px; position: relative; }
+        .battery-level { position: absolute; top: 1px; left: 1px; bottom: 1px; background: #30d158; border-radius: 2px; transition: width 0.5s, background-color 0.3s; }
+        .battery-icon::after { content: ''; position: absolute; right: -3px; top: 3px; width: 2px; height: 4px; background: white; border-radius: 0 1px 1px 0; }
+        /* ------------------------------- */
+
+        .home-screen {
+            padding: 30px 14px 120px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px 16px;
+        }
+
+        .app-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .app-icon:active { transform: scale(0.85); }
+        .icon {
+            width: 75px;
+            height: 75px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+            margin-bottom: 8px;
+            transition: all 0.3s;
+        }
+        .app-name {
+            color: white;
+            font-size: 13px;
+            text-align: center;
+            font-weight: 500;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+        }
+
+        .dock {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 25px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(30px);
+            padding: 12px 30px;
+            border-radius: 28px;
+        }
+
+        .home-indicator {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 140px;
+            height: 5px;
+            background: rgba(255,255,255,0.35);
+            border-radius: 10px;
+        }
+
+        .app-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f2f2f7; /* LIGHT MODE BG */
+            transform: translateY(100%);
+            transition: transform 0.4s, background 0.3s;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+        }
+        .app-screen.active { transform: translateY(0); }
+        .app-screen > .app-content { flex: 1; overflow-y: auto; padding: 20px; }
+        .conversation-screen { 
+            display: none; 
+            flex-direction: column; 
+            height: 100%; 
+            background: white; 
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%; 
+            z-index: 101; 
+            transition: background 0.3s;
+        }
+        .conversation-screen.active { display: flex; }
+
+
+        .app-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 55px 20px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        }
+        .back-btn {
+            background: rgba(255,255,255,0.25);
+            border: none;
+            color: white;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            font-size: 22px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .app-title { font-size: 26px; font-weight: 700; }
+        
+        /* --- CARDS & BUTTONS --- */
+        .card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            transition: background 0.3s, border 0.3s;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #1c1c1e;
+            transition: color 0.3s;
+        }
+        .card-content {
+            font-size: 15px;
+            color: #8e8e93;
+            line-height: 1.6;
+            transition: color 0.3s;
+        }
+        .btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #007aff, #0051d5);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 10px;
+            transition: opacity 0.3s;
+        }
+        .btn:hover { opacity: 0.9; }
+
+        /* --- INPUTS --- */
+        .input-group { margin-bottom: 15px; }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1c1c1e;
+            transition: color 0.3s;
+        }
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d1d6;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
+            outline: none;
+            transition: background 0.3s, color 0.3s, border-color 0.3s;
+        }
+        .input-group textarea { resize: vertical; min-height: 100px; }
+
+        /* --- LISTS --- */
+        .contact-item, .list-item, .transaction-item {
+            padding: 15px;
+            border-bottom: 1px solid #e5e5e7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            background: white;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .contact-item:last-child { border-bottom: none; }
+        .contact-item:hover, .list-item:hover { background: #f8f8f8; }
+        .list-item-title { font-weight: 600; color: #1c1c1e; margin-bottom: 5px; transition: color 0.3s; }
+        .list-item-desc { font-size: 14px; color: #8e8e93; transition: color 0.3s; }
+        
+        /* --- BANK --- */
+        .bank-balance {
+            background: linear-gradient(135deg, #009688, #00796B);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .balance-amount { font-size: 48px; font-weight: 700; margin: 10px 0; }
+
+        /* --- MESSAGES --- */
+        .messages-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .message-bubble { max-width: 70%; padding: 12px 16px; border-radius: 18px; word-wrap: break-word; font-size: 15px; }
+        .message-bubble.sent { align-self: flex-end; background: linear-gradient(135deg, #007aff, #0051d5); color: white; }
+        .message-bubble.received { align-self: flex-start; background: #e5e5ea; color: #1c1c1e; }
+        .message-input-container { padding: 15px; background: white; border-top: 1px solid #e5e5e7; display: flex; gap: 10px; flex-shrink: 0; transition: background 0.3s, border-color 0.3s; }
+        .message-input { flex: 1; padding: 10px 15px; border: 1px solid #d1d1d6; border-radius: 20px; font-size: 15px; outline: none; transition: background 0.3s, color 0.3s, border-color 0.3s; }
+        .send-btn { background: #007aff; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 18px; }
+
+        /* --- TWITTER --- */
+        .tweet-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #e5e5e7;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .tweet-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .tweet-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; background: #1da1f2; color: white; font-weight: 700; }
+        .tweet-name { font-weight: 700; color: #1c1c1e; transition: color 0.3s; }
+        .tweet-user { color: #8e8e93; font-size: 14px; transition: color 0.3s; }
+        .tweet-content { font-size: 15px; line-height: 1.5; margin-bottom: 10px; word-wrap: break-word; }
+        .tweet-footer { font-size: 12px; color: #8e8e93; }
+
+        /* --- INSTAGRAM --- */
+        .post-card {
+            background: white;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .post-header { padding: 10px 15px; display: flex; align-items: center; gap: 10px; }
+        .post-img { width: 100%; height: 250px; background: #ccc; display: flex; align-items: center; justify-content: center; font-size: 60px; color: white; }
+        .post-actions { padding: 10px 15px; display: flex; gap: 15px; font-size: 24px; color: #1c1c1e; }
+        .post-likes { font-weight: 600; font-size: 14px; padding: 0 15px 10px; }
+        .post-caption { font-size: 14px; padding: 0 15px 15px; }
+
+        /* --- CRYPTO --- */
+        .crypto-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #e5e5e7;
+            cursor: pointer;
+        }
+        .crypto-name { font-weight: 700; font-size: 16px; }
+        .crypto-price { font-weight: 600; font-size: 18px; }
+        .crypto-change.up { color: #34c759; }
+        .crypto-change.down { color: #ff3b30; }
+
+        /* --- DARK MODE STYLES --- */
+        .dark-mode .screen { background: #000000; }
+        .dark-mode .status-bar, .dark-mode .time { color: white; }
+        .dark-mode .app-screen { background: #1c1c1e; }
+        .dark-mode .card, .dark-mode .contact-item, .dark-mode .message-input-container, .dark-mode .tweet-card, .dark-mode .list-item, .dark-mode .conversation-screen { background: #2c2c2e; border: 1px solid #3a3a3c; }
+        .dark-mode .card-title, .dark-mode .tweet-name, .dark-mode .list-item-title, .dark-mode .input-group label, .dark-mode .message-bubble.received { color: white; }
+        .dark-mode .card-content, .dark-mode .list-item-desc, .dark-mode .tweet-user, .dark-mode .tweet-footer { color: #d1d1d6; }
+        .dark-mode .message-bubble.received { background: #3a3a3c; color: white; }
+        .dark-mode .contact-item:hover, .dark-mode .list-item:hover { background: #3a3a3c; }
+        .dark-mode .message-input, .dark-mode .setup-input, .dark-mode .input-group input, .dark-mode .input-group textarea { background: #48484a; color: white; border: 1px solid #636366; }
+        .dark-mode .battery-icon { border-color: white; }
+        .dark-mode .battery-icon::after { background: white; }
+        .dark-mode .crypto-item { border-bottom-color: #3a3a3c; }
+
+        /* --- DARK MODE TOGGLE (SWITCH) --- */
+        .switch { position: relative; display: inline-block; width: 45px; height: 25px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; }
+        .slider:before { position: absolute; content: ""; height: 19px; width: 19px; left: 3px; bottom: 3px; background-color: white; transition: .4s; }
+        input:checked + .slider { background-color: #007aff; }
+        input:checked + .slider:before { transform: translateX(20px); }
+        .slider.round { border-radius: 25px; }
+        .slider.round:before { border-radius: 50%; }
+        
+        /* --- SERVICE APP --- */
+        .service-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .service-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        .service-name {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1c1c1e;
+            margin-bottom: 10px;
+        }
+        .service-desc {
+            font-size: 16px;
+            color: #8e8e93;
+            margin-bottom: 40px;
+        }
+        .dark-mode .service-name { color: white; }
+
+    </style>
+</head>
+<body>
+    <div class="iphone">
+        <div class="screen" id="screen">
+            <div class="setup-screen" id="setupScreen">
+                <div class="setup-title">📱 iRPPhone</div>
+                <div class="setup-subtitle">Configuration de votre téléphone RP</div>
+                <input type="text" class="setup-input" id="usernameInput" placeholder="Votre prénom" maxlength="20">
+                <input type="text" class="setup-input" id="lastnameInput" placeholder="Votre nom" maxlength="20">
+                <input type="text" class="setup-input" id="phoneInput" placeholder="Numéro (ex: 555-1234)" maxlength="15">
+                <button class="setup-btn" onclick="completeSetup()">Démarrer</button>
+            </div>
+
+            <div class="notch"></div>
+
+            <div class="status-bar">
+                <div class="time" id="time">15:39</div>
+                <div class="status-icons">
+                    <div class="wifi-icon"></div>
+                    <div id="batteryText">100%</div>
+                    <div class="battery-icon">
+                        <div class="battery-level" id="batteryLevel" style="width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="home-screen">
+                <div class="app-icon" onclick="openApp('contacts')">
+                    <div class="icon" style="background: linear-gradient(135deg, #ff9500, #ff6b00);">📞</div>
+                    <div class="app-name">Contacts</div>
+                </div>
+                <div class="app-icon" onclick="openApp('messages')">
+                    <div class="icon" style="background: linear-gradient(135deg, #30d158, #248a3d);">💬</div>
+                    <div class="app-name">Messages</div>
+                </div>
+                <div class="app-icon" onclick="openApp('bank')">
+                    <div class="icon" style="background: linear-gradient(135deg, #009688, #00796B);">💰</div>
+                    <div class="app-name">Banque</div>
+                </div>
+                <div class="app-icon" onclick="openApp('crypto')">
+                    <div class="icon" style="background: linear-gradient(135deg, #ff9500, #f7931a);">🚀</div>
+                    <div class="app-name">Crypto</div>
+                </div>
+
+                <div class="app-icon" onclick="openApp('garage')">
+                    <div class="icon" style="background: linear-gradient(135deg, #ff3b30, #d81b60);">🚗</div>
+                    <div class="app-name">Garage</div>
+                </div>
+                <div class="app-icon" onclick="openApp('properties')">
+                    <div class="icon" style="background: linear-gradient(135deg, #5856d6, #3d3db8);">🏠</div>
+                    <div class="app-name">Propriétés</div>
+                </div>
+                <div class="app-icon" onclick="openApp('market')">
+                    <div class="icon" style="background: linear-gradient(135deg, #ff9500, #cc7a00);">🛒</div>
+                    <div class="app-name">Marketplace</div>
+                </div>
+                <div class="app-icon" onclick="openApp('job')">
+                    <div class="icon" style="background: linear-gradient(135deg, #007aff, #0051d5);">💼</div>
+                    <div class="app-name">Emplois</div>
+                </div>
+
+                <div class="app-icon" onclick="openApp('police')">
+                    <div class="icon" style="background: linear-gradient(135deg, #0066cc, #004d99);">👮</div>
+                    <div class="app-name">Police</div>
+                </div>
+                <div class="app-icon" onclick="openApp('ems')">
+                    <div class="icon" style="background: linear-gradient(135deg, #ff3b30, #cc0000);">🚑</div>
+                    <div class="app-name">EMS</div>
+                </div>
+                <div class="app-icon" onclick="openApp('taxi')">
+                    <div class="icon" style="background: linear-gradient(135deg, #ffcc00, #ff9900);">🚕</div>
+                    <div class="app-name">Taxi</div>
+                </div>
+                <div class="app-icon" onclick="openApp('meca')">
+                    <div class="icon" style="background: linear-gradient(135deg, #8e8e93, #636366);">🔧</div>
+                    <div class="app-name">Mécano</div>
+                </div>
+
+                <div class="app-icon" onclick="openApp('instagram')">
+                    <div class="icon" style="background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);">📷</div>
+                    <div class="app-name">Instagram</div>
+                </div>
+                <div class="app-icon" onclick="openApp('twitter')">
+                    <div class="icon" style="background: linear-gradient(135deg, #1da1f2, #0c85d0);">🐦</div>
+                    <div class="app-name">Twitter</div>
+                </div>
+                <div class="app-icon" onclick="openApp('weazel')">
+                    <div class="icon" style="background: linear-gradient(135deg, #ff2d55, #cc0044);">📺</div>
+                    <div class="app-name">Weazel News</div>
+                </div>
+                <div class="app-icon" onclick="openApp('yellowpages')">
+                    <div class="icon" style="background: linear-gradient(135deg, #ffcc00, #cc9900);">📖</div>
+                    <div class="app-name">Pages Jaunes</div>
+                </div>
+            </div>
+
+            <div class="dock">
+                <div class="app-icon" onclick="openApp('contacts')">
+                    <div class="icon" style="background: linear-gradient(135deg, #ff9500, #ff6b00);">📞</div>
+                </div>
+                <div class="app-icon" onclick="openApp('messages')">
+                    <div class="icon" style="background: linear-gradient(135deg, #30d158, #248a3d);">💬</div>
+                </div>
+                <div class="app-icon" onclick="openApp('bank')">
+                    <div class="icon" style="background: linear-gradient(135deg, #009688, #00796B);">💰</div>
+                </div>
+                <div class="app-icon" onclick="openApp('settings')">
+                    <div class="icon" style="background: linear-gradient(135deg, #6c6c70, #464649);">⚙️</div>
+                </div>
+            </div>
+
+            <div class="home-indicator"></div>
+
+            <div class="app-screen" id="contactsScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #ff9500, #ff6b00);">
+                    <button class="back-btn" onclick="closeApp()">←</button>
+                    <div class="app-title">📞 Contacts</div>
+                    <button class="back-btn" style="margin-left: auto;" onclick="showAddContact()">+</button>
+                </div>
+                <div class="app-content">
+                    <div class="input-group">
+                        <input type="text" id="contactSearch" placeholder="🔍 Rechercher un contact..." oninput="searchContacts()">
+                    </div>
+                    <div id="contactsList">
+                        </div>
+                </div>
+            </div>
+            
+            <div class="app-screen" id="addContactScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #ff9500, #ff6b00);">
+                    <button class="back-btn" onclick="backToContacts()">←</button>
+                    <div class="app-title">Nouveau Contact</div>
+                </div>
+                <div class="app-content">
+                    <div class="card">
+                        <div class="input-group">
+                            <label>Nom</label>
+                            <input type="text" id="newContactName" placeholder="Nom du contact">
+                        </div>
+                        <div class="input-group">
+                            <label>Numéro</label>
+                            <input type="text" id="newContactNumber" placeholder="555-xxxx">
+                        </div>
+                        <button class="btn" onclick="addContact()">Ajouter</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="app-screen" id="messagesScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #30d158, #248a3d);">
+                    <button class="back-btn" onclick="closeApp()">←</button>
+                    <div class="app-title">💬 Messages</div>
+                </div>
+                <div class="app-content">
+                    <div id="conversationsList">
+                        <div class="contact-item" onclick="openConversation('555-1234', 'John Doe')">
+                            <div style="flex: 1;">
+                                <div class="list-item-title">John Doe</div>
+                                <div class="list-item-desc">Salut, c'est quoi le plan ce soir?</div>
+                            </div>
+                            <div style="font-size: 12px; color: #8e8e93;">14:30</div>
+                        </div>
+                        <div class="contact-item" onclick="openConversation('555-5555', 'LSPD 🚨')">
+                            <div style="flex: 1;">
+                                <div class="list-item-title" style="color: #007aff;">LSPD 🚨</div>
+                                <div class="list-item-desc">OK, on arrive sur la scène.</div>
+                            </div>
+                            <div style="font-size: 12px; color: #8e8e93;">Hier</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="conversation-screen" id="conversationScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #30d158, #248a3d);">
+                    <button class="back-btn" onclick="backToMessages()">←</button>
+                    <div class="app-title" id="conversationTitle">Chat Name</div>
+                </div>
+                <div class="messages-container" id="chatWindow">
+                    <div class="message-bubble received">Salut, ça va?</div>
+                    <div class="message-bubble sent">Oui, super! Tu fais quoi?</div>
+                </div>
+                <div class="message-input-container">
+                    <input type="text" id="messageInput" class="message-input" placeholder="iMessage">
+                    <button class="send-btn" onclick="sendMessage()">⬆️</button>
+                </div>
+            </div>
+
+            <div class="app-screen" id="bankScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #009688, #00796B);">
+                    <button class="back-btn" onclick="closeApp()">←</button>
+                    <div class="app-title">💰 LS Bank</div>
+                </div>
+                <div class="app-content">
+                    <div class="bank-balance" style="background: linear-gradient(135deg, #009688, #00796B);">
+                        <div style="font-size: 18px; opacity: 0.9;">Solde disponible</div>
+                        <div class="balance-amount" id="bankBalance">$0</div>
+                        <div style="font-size: 14px; opacity: 0.8;">Compte courant</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Détails du Compte</div>
+                        <div class="card-content">
+                            <strong>Titulaire:</strong> <span id="bankHolderName">-</span><br>
+                            <strong>Numéro de compte:</strong> <span id="bankAccountNumber">-</span><br>
+                            <strong>RIB:</strong> <span id="bankRIB">-</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Actions rapides</div>
+                        <button class="btn" onclick="showTransfer()" style="background: linear-gradient(135deg, #009688, #00796B);">Faire un virement</button>
+                        <button class="btn" style="background: linear-gradient(135deg, #ff3b30, #cc0000); margin-top: 10px;" onclick="alert('Fonctionnalité en cours de développement.')">Retirer de l'argent</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Dernières transactions</div>
+                        <div id="transactionsList">
+                            <div class="list-item">
+                                <div><div class="list-item-title">Salaire - Dépôt</div><div class="list-item-desc">Aujourd'hui</div></div>
+                                <div style="color: #34c759; font-weight: 700;">+$2,500</div>
+                            </div>
+                            <div class="list-item">
+                                <div><div class="list-item-title">Achat - Ammu-Nation</div><div class="list-item-desc">Hier</div></div>
+                                <div style="color: #ff3b30; font-weight: 700;">-$450</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="app-screen" id="transferScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #009688, #00796B);">
+                    <button class="back-btn" onclick="backToBank()">←</button>
+                    <div class="app-title">Virement Bancaire</div>
+                </div>
+                <div class="app-content">
+                    <div class="card">
+                        <div class="input-group">
+                            <label>Numéro de téléphone du destinataire</label>
+                            <input type="text" id="transferNumber" placeholder="555-xxxx">
+                        </div>
+                        <div class="input-group">
+                            <label>Montant ($)</label>
+                            <input type="number" id="transferAmount" placeholder="1000">
+                        </div>
+                        <button class="btn" onclick="executeTransfer()">Effectuer le virement</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="app-screen" id="cryptoScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #ff9500, #f7931a);">
+                    <button class="back-btn" onclick="closeApp()">←</button>
+                    <div class="app-title">🚀 Crypto Exchange</div>
+                </div>
+                <div class="app-content">
+                    <div class="card">
+                        <div class="card-title">Mon Portefeuille</div>
+                        <div class="card-content">
+                            <strong>Valeur Totale:</strong> <span id="cryptoValue">$0</span><br>
+                            <strong>RPcoin détenus:</strong> <span id="RPcoinBalance">0.00</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Marché (Simulé)</div>
+                        <div class="crypto-item">
+                            <div>
+                                <div class="crypto-name">RPcoin ($RPC)</div>
+                                <div class="crypto-change down" id="RPcoinChange">-0.00%</div>
+                            </div>
+                            <div class="crypto-price" id="RPcoinPrice">$1,000</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Acheter / Vendre RPcoin</div>
+                        <div class="input-group">
+                            <label>Montant à échanger ($)</label>
+                            <input type="number" id="cryptoAmount" placeholder="0">
+                        </div>
+                        <button class="btn" onclick="buyCrypto()" style="background: linear-gradient(135deg, #34c759, #28a745);">Acheter</button>
+                        <button class="btn" onclick="sellCrypto()" style="background: linear-gradient(135deg, #ff3b30, #cc0000); margin-top: 10px;">Vendre</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="app-screen" id="garageScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #ff3b30, #d81b60);">
+                    <button class="back-btn" onclick="closeApp()">←</button>
+                    <div class="app-title">🚗 Garage</div>
+                </div>
+                <div class="app-content">
+                    <div class="input-group">
+                        <input type="text" placeholder="🔍 Rechercher un véhicule...">
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Véhicules Possédés</div>
+                        <div id="vehiclesList">
+                            <div class="list-item">
+                                <div><div class="list-item-title">Karin Sultan RS</div><div class="list-item-desc">Plaque: ABE-047 | Garage: Downtown</div></div>
+                                <button class="btn" style="width: auto; padding: 5px 10px; margin: 0; background: #007aff;">Sortir</button>
+                            </div>
+                            <div class="list-item">
+                                <div><div class="list-item-title">Nagasaki Carbon RS</div><div class="list-item-desc">Plaque: MOTO-99 | Garage: Vespucci</div></div>
+                                <button class="btn" style="width: auto; padding: 5px 10px; margin: 0; background: #007aff;">Sortir</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="app-screen" id="propertiesScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #5856d6, #3d3db8);">
+                    <button class="back-btn" onclick="closeApp()">←</button>
+                    <div class="app-title">🏠 Propriétés</div>
+                </div>
+                <div class="app-content">
+                    <div class="card">
+                        <div class="card-title">Mes Résidences</div>
+                        <div id="propertiesList">
+                            <div class="list-item">
+                                <div><div class="list-item-title">Appartement Alta St.</div><div class="list-item-desc">Loyer / 7 jours: $500</div></div>
+                                <button class="btn" style="width: auto; padding: 5px 10px; margin: 0; background: #007aff;">Payer</button>
+                            </div>
+                            <div class="list-item">
+                                <div><div class="list-item-title">Bureau Maze Bank</div><div class="list-item-desc">Payer avant: 24/11</div></div>
+                                <button class="btn" style="width: auto; padding: 5px 10px; margin: 0; background: #007aff;">Payer</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="app-screen" id="marketScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #ff9500, #cc7a00);">
+                    <button class="back-btn" onclick="closeApp()">←</button>
+                    <div class="app-title">🛒 Marketplace</div>
+                </div>
+                <div class="app-content">
+                    <button class="btn" onclick="showNewAd()" style="background: linear-gradient(135deg, #ff9500, #cc7a00);">➕ Publier une annonce</button>
+                    <div style="height: 20px;"></div>
+                    <div id="adsList">
+                        <div class="card">
+                            <div class="card-title">Vends Elegy RH8 - $85,000</div>
+                            <div class="card-content">
+                                État impeccable, moteur Stage 3, couleur noir mat. Contactez-moi au 555-4321.
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">A louer: Studio à Vespucci - $1,200/semaine</div>
+                            <div class="card-content">
+                                Vue sur mer, entièrement meublé. Idéal pour jeune RP.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="app-screen" id="newAdScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #ff9500, #cc7a00);">
+                    <button class="back-btn" onclick="backToMarket()">←</button>
+                    <div class="app-title">Nouvelle annonce</div>
+                </div>
+                <div class="app-content">
+                    <div class="input-group">
+                        <label>Titre</label>
+                        <input type="text" id="adTitle" placeholder="Ex: Vends voiture">
+                    </div>
+                    <div class="input-group">
+                        <label>Description</label>
+                        <textarea id="adDescription" placeholder="Décrivez votre annonce..."></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label>Prix (optionnel)</label>
+                        <input type="number" id="adPrice" placeholder="0">
+                    </div>
+                    <button class="btn" onclick="publishAd()">Publier</button>
+                </div>
+            </div>
+
+            <div class="app-screen" id="jobScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #007aff, #0051d5);">
+                    <button class="back-btn" onclick="closeApp()">←</button>
+                    <div class="app-title">💼 Centre pour l'emploi</div>
+                </div>
+                <div class="app-content">
+                    <div class="card">
+                        <div class="card-title">Mon Emploi Actuel</div>
+                        <div class="card-content">
+                            <strong>Poste:</strong> <span id="currentJobName">Chauffeur Taxi (Civil)</span><br>
+                            <strong>Salaire:</strong> $250 / action<br>
+                            <strong>Statut:</strong> Actif
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Offres d'Emploi</div>
+                        <div class="list-item">
+                            <div><div class="list-item-title">Mécano - LS Custom</div><div class="list-item-desc">Poste à temps plein, expérience requise.</div></div>
+                            <button class="btn" style="width: auto; padding: 5px 10px; margin: 0; background: #007aff;">Postuler</button>
+                        </div>
+                        <div class="list-item">
+                            <div><div class="list-item-title">Récolte de Fruits</div><div class="list-item-desc">Emploi temporaire, payé à l'heure.</div></div>
+                            <button class="btn" style="width: auto; padding: 5px 10px; margin: 0; background: #007aff;">Postuler</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="app-screen" id="policeScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #0066cc, #004d99);">
+                    <button class="back-btn" onclick="closeApp()">←</button>
+                    <div class="app-title">👮 Police (911)</div>
+                </div>
+                <div class="app-content service-content">
+                    <div class="service-icon">🚨</div>
+                    <div class="service-name">LSPD - Urgences</div>
+                    <div class="service-desc">Appelez la police pour toute urgence ou situation criminelle.</div>
+                    <button class="btn" onclick="callContact('555-0911')" style="background: linear-gradient(135deg, #0066cc, #004d99); margin-bottom: 10px;">Appeler (555-0911)</button>
+                    <button class="btn" onclick="openConversation('555-0911', 'LSPD 🚨')">Envoyer un SMS</button>
+                </div>
+            </div>
+
+            <div class="app-screen" id="emsScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #ff3b30, #cc0000);">
+                    <button class="back-btn" onclick="closeApp()">←</button>
+                    <div class="app-title">🚑 EMS (911)</div>
+                </div>
+                <div class="app-content service-content">
+                    <div class="service-icon">❤️</div>
+                    <div class="service-name">EMS - Urgences</div>
+                    <div class="service-desc">Contactez les services médicaux pour des soins d'urgence.</div>
+                    <button class="btn" onclick="callContact('555-0911')" style="background: linear-gradient(135deg, #ff3b30, #cc0000); margin-bottom: 10px;">Appeler (555-0911)</button>
+                    <button class="btn" onclick="openConversation('555-0911', 'EMS ❤️')">Envoyer un SMS</button>
+                </div>
+            </div>
+
+            <div class="app-screen" id="taxiScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #ffcc00, #ff9900);">
+                    <button class="back-btn" onclick="closeApp()">←</button>
+                    <div class="app-title">🚕 Taxi</div>
+                </div>
+                <div class="app-content service-content">
+                    <div class="service-icon">🚖</div>
+                    <div class="service-name">Downtown Taxi</div>
+                    <div class="service-desc">Réservez une course pour vous déplacer dans la ville.</div>
+                    <button class="btn" onclick="callContact('555-4000')" style="background: linear-gradient(135deg, #ffcc00, #ff9900); color: #1c1c1e; margin-bottom: 10px;">Appeler (555-4000)</button>
+                    <button class="btn" onclick="openConversation('555-4000', 'Downtown Taxi')">Envoyer un SMS</button>
+                </div>
+            </div>
+
+            <div class="app-screen" id="mecaScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #8e8e93, #636366);">
+                    <button class="back-btn" onclick="closeApp()">←</button>
+                    <div class="app-title">🔧 Mécano</div>
+                </div>
+                <div class="app-content service-content">
+                    <div class="service-icon">🔩</div>
+                    <div class="service-name">Mécano Mobile</div>
+                    <div class="service-desc">Appelez un mécanicien pour une réparation ou un dépannage.</div>
+                    <button class="btn" onclick="callContact('555-3000')" style="background: linear-gradient(135deg, #8e8e93, #636366); margin-bottom: 10px;">Appeler (555-3000)</button>
+                    <button class="btn" onclick="openConversation('555-3000', 'Mécano')">Envoyer un SMS</button>
+                </div>
+            </div>
+            
+            <div class="app-screen" id="weazelScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #ff2d55, #cc0044);">
+                    <button class="back-btn" onclick="closeApp()">←</button>
+                    <div class="app-title">📺 Weazel News</div>
+                </div>
+                <div class="app-content">
+                    <button class="btn" style="background: linear-gradient(135deg, #ff2d55, #cc0044);" onclick="showNewArticle()">✍️ Écrire un article</button>
+                    <div style="height: 20px;"></div>
+                    <div id="newsList">
+                        </div>
+                </div>
+            </div>
+
+            <div class="app-screen" id="newArticleScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #ff2d55, #cc0044);">
+                    <button class="back-btn" onclick="backToWeazel()">←</button>
+                    <div class="app-title">Nouvel article</div>
+                </div>
+                <div class="app-content">
+                    <div class="input-group">
+                        <label>Titre</label>
+                        <input type="text" id="articleTitle" placeholder="Titre de l'article">
+                    </div>
+                    <div class="input-group">
+                        <label>Contenu</label>
+                        <textarea id="articleContent" placeholder="Rédigez votre article..." style="min-height: 200px;"></textarea>
+                    </div>
+                    <button class="btn" style="background: linear-gradient(135deg, #ff2d55, #cc0044);" onclick="publishArticle()">📰 Publier</button>
+                </div>
+            </div>
+
+            <div class="app-screen" id="instagramScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);">
+                    <button class="back-btn" onclick="closeApp()">←</button>
+                    <div class="app-title">📷 Instagram</div>
+                </div>
+                <div class="app-content">
+                    <button class="btn" style="background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);" onclick="showNewPost()">➕ Nouvelle publication</button>
+                    <div style="height: 20px;"></div>
+                    <div id="instagramFeed">
+                        </div>
+                </div>
+            </div>
+
+            <div class="app-screen" id="newPostScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);">
+                    <button class="back-btn" onclick="backToInstagram()">←</button>
+                    <div class="app-title">Nouvelle publication</div>
+                </div>
+                <div class="app-content">
+                    <div class="card">
+                        <div class="post-img" style="background: #ccc; height: 150px;">
+                            (Photo de simulation ici)
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Légende</label>
+                        <textarea id="postCaption" placeholder="Écrivez une légende..."></textarea>
+                    </div>
+                    <button class="btn" style="background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);" onclick="publishPost()">Publier</button>
+                </div>
+            </div>
+
+            <div class="app-screen" id="twitterScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #1da1f2, #0c85d0);">
+                    <button class="back-btn" onclick="closeApp()">←</button>
+                    <div class="app-title">🐦 Twitter</div>
+                    <button class="back-btn" style="margin-left: auto;" onclick="showNewTweet()">+</button>
+                </div>
+                <div class="app-content">
+                    <div class="input-group">
+                        <input type="text" placeholder="🔍 Rechercher des tweets...">
+                    </div>
+                    <div id="tweetsList">
+                         <div class="tweet-card">
+                            <div class="tweet-header">
+                                <div class="tweet-avatar" style="background: #007aff;">J</div>
+                                <div><div class="tweet-name">John Doe</div><div class="tweet-user">@Johnny_D</div></div>
+                            </div>
+                            <div class="tweet-content">La circulation sur le Great Ocean Highway est infernale ce soir. Évitez le coin si vous pouvez ! #LSrp #Trafic</div>
+                            <div class="tweet-footer">Il y a 10 minutes</div>
+                        </div>
+                        <div class="tweet-card">
+                            <div class="tweet-header">
+                                <div class="tweet-avatar" style="background: #ff9500;">W</div>
+                                <div><div class="tweet-name">Weazel News</div><div class="tweet-user">@WeazelNewsLS</div></div>
+                            </div>
+                            <div class="tweet-content">Incendie majeur signalé dans le quartier de Vespucci. Les pompiers sont sur place. Restez à l'abri.</div>
+                            <div class="tweet-footer">Il y a 30 minutes</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+             <div class="app-screen" id="newTweetScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #1da1f2, #0c85d0);">
+                    <button class="back-btn" onclick="backToTwitter()">←</button>
+                    <div class="app-title">Nouveau Tweet</div>
+                </div>
+                <div class="app-content">
+                    <div class="input-group">
+                        <label>Votre Tweet</label>
+                        <textarea id="tweetContent" placeholder="Quoi de neuf ? (Max 280 caractères)" maxlength="280" oninput="updateCharCount()"></textarea>
+                    </div>
+                    <div style="text-align: right; color: #8e8e93; font-size: 14px; margin-bottom: 20px;">
+                        <span id="charCount">280</span> caractères restants
+                    </div>
+                    <button class="btn" onclick="postTweet()">Tweeter</button>
+                </div>
+            </div>
+
+
+            <div class="app-screen" id="yellowpagesScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #ffcc00, #cc9900);">
+                    <button class="back-btn" onclick="closeApp()">←</button>
+                    <div class="app-title">📖 Pages Jaunes</div>
+                </div>
+                <div class="app-content">
+                    <div class="input-group">
+                        <input type="text" id="searchYellowPages" placeholder="🔍 Rechercher un service..." oninput="searchYellowPages()">
+                    </div>
+                    <div id="yellowPagesList">
+                        </div>
+                </div>
+            </div>
+
+            <div class="app-screen" id="settingsScreen">
+                <div class="app-header" style="background: linear-gradient(135deg, #6c6c70, #464649);">
+                    <button class="back-btn" onclick="closeApp()">←</button>
+                    <div class="app-title">⚙️ Paramètres</div>
+                </div>
+                <div class="app-content">
+                    <div class="card">
+                        <div class="card-title">👤 Mon profil</div>
+                        <div class="card-content">
+                            <strong>Nom:</strong> <span id="settingsName">-</span><br>
+                            <strong>Numéro:</strong> <span id="settingsPhone">-</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">✨ Affichage</div>
+                        <div class="card-content" style="display: flex; justify-content: space-between; align-items: center;">
+                            Mode Sombre
+                            <label class="switch">
+                                <input type="checkbox" id="darkModeToggle" onclick="toggleDarkMode()">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">📱 Système</div>
+                        <div class="card-content">
+                            <strong>Modèle:</strong> iRPPhone 15 Pro<br>
+                            <strong>Version:</strong> RP OS 3.0<br>
+                            <strong>Serveur:</strong> FiveM RP
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = { firstName: '', lastName: '', phone: '' };
+        let currentApp = null;
+        let balance = 5000;
+        let RPcoin = 0;
+        let RPcoinPrice = 1000;
+        let battery = 100;
+        let isDarkMode = false;
+        let contacts = [{ name: 'Maman', number: '555-0101' }, { name: 'Papi', number: '555-0202' }];
+        let tweets = [
+             { user: 'Weazel News', handle: '@WeazelNewsLS', content: 'Le nouveau code de la route entre en vigueur la semaine prochaine. Lisez l\'article complet sur notre site !', timestamp: Date.now() - 3600000, color: '#ff9500' },
+             { user: 'LSPD Officiel', handle: '@LSPD_HQ', content: 'Rappel : Le port de la ceinture est obligatoire. Contrôles accrus ce weekend.', timestamp: Date.now() - 7200000, color: '#007aff' }
+        ]; 
+        let articles = []; 
+        let posts = [];
+        const yellowPagesData = [
+            { name: 'Police LSPD', desc: 'Rapports d\'urgence, 911', phone: '555-0911', type: 'service' },
+            { name: 'EMS Los Santos', desc: 'Urgences médicales, 911', phone: '555-0911', type: 'service' },
+            { name: 'Mécano Mobile', desc: 'Dépannage et réparation sur place', phone: '555-3000', type: 'service' },
+            { name: 'Downtown Taxi', desc: 'Réserver une course', phone: '555-4000', type: 'service' },
+            { name: 'Ammu-Nation', desc: 'Armes et munitions', phone: '555-5000', type: 'commerce' },
+            { name: 'Pizza This', desc: 'Livraison de pizzas', phone: '555-6000', type: 'commerce' },
+            { name: 'Weazel News', desc: 'Service de presse', phone: '555-7000', type: 'commerce' },
+        ];
+
+
+        // --- GLOBAL FUNCTIONS: TIME, BATTERY, DARK MODE ---
+
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('time').textContent = `${hours}:${minutes}`;
+        }
+        updateTime();
+        setInterval(updateTime, 60000);
+
+        function updateBattery() {
+            battery = Math.max(0, battery - (Math.random() < 0.1 ? 5 : 1)); // Slow random decrease
+            document.getElementById('batteryText').textContent = `${battery}%`;
+            document.getElementById('batteryLevel').style.width = `${battery}%`;
+            
+            const levelElement = document.getElementById('batteryLevel');
+            if (battery <= 20) {
+                levelElement.style.background = '#ff3b30';
+            } else if (battery <= 50) {
+                levelElement.style.background = '#ffcc00';
+            } else {
+                levelElement.style.background = '#30d158';
+            }
+        }
+        setInterval(updateBattery, 60000);
+
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode', isDarkMode);
+            localStorage.setItem('iRPPhone_darkMode', isDarkMode);
+            document.getElementById('darkModeToggle').checked = isDarkMode;
+        }
+
+        // --- SETUP & NAVIGATION ---
+
+        async function completeSetup() {
+            const firstName = document.getElementById('usernameInput').value.trim();
+            const lastName = document.getElementById('lastnameInput').value.trim();
+            const phone = document.getElementById('phoneInput').value.trim();
+            
+            if (!firstName || !lastName || !phone) {
+                alert('Veuillez remplir tous les champs');
+                return;
+            }
+            
+            currentUser = { firstName, lastName, phone, fullName: `${firstName} ${lastName}` };
+            
+            // Simulation d'enregistrement dans un stockage FiveM (si disponible)
+            if (window.storage && window.storage.set) {
+                try {
+                    await window.storage.set(`user:${phone}`, JSON.stringify(currentUser), true);
+                    await window.storage.set(`balance:${phone}`, balance.toString(), false);
+                } catch (e) {}
+            }
+            
+            localStorage.setItem('iRPPhone_user', JSON.stringify(currentUser));
+            document.getElementById('setupScreen').classList.add('hidden');
+            loadBankBalance();
+            loadCryptoData();
+        }
+
+        function openApp(appName) {
+            const screens = {
+                'contacts': 'contactsScreen', 'messages': 'messagesScreen', 'bank': 'bankScreen', 'garage': 'garageScreen',
+                'properties': 'propertiesScreen', 'market': 'marketScreen', 'job': 'jobScreen', 'police': 'policeScreen',
+                'ems': 'emsScreen', 'taxi': 'taxiScreen', 'meca': 'mecaScreen', 'weazel': 'weazelScreen',
+                'instagram': 'instagramScreen', 'twitter': 'twitterScreen', 'yellowpages': 'yellowpagesScreen',
+                'settings': 'settingsScreen', 'crypto': 'cryptoScreen'
+            };
+
+            const screenId = screens[appName];
+            if (screenId) {
+                currentApp = document.getElementById(screenId);
+                currentApp.classList.add('active');
+                
+                if (appName === 'contacts') loadContacts();
+                else if (appName === 'messages') loadMessagesList();
+                else if (appName === 'bank') loadBankData();
+                else if (appName === 'garage') loadVehicles();
+                else if (appName === 'properties') loadProperties();
+                else if (appName === 'market') loadAds();
+                else if (appName === 'job') loadJobs();
+                else if (appName === 'weazel') loadNews();
+                else if (appName === 'instagram') loadInstagram();
+                else if (appName === 'twitter') loadTwitter();
+                else if (appName === 'yellowpages') loadYellowPages();
+                else if (appName === 'settings') loadSettings();
+                else if (appName === 'crypto') loadCryptoData();
+            }
+        }
+
+        function closeApp() {
+            if (currentApp) {
+                currentApp.classList.remove('active');
+                currentApp = null;
+            }
+            // Ensure any sub-screens are closed too
+            document.getElementById('conversationScreen').classList.remove('active');
+            document.getElementById('transferScreen').classList.remove('active');
+            document.getElementById('addContactScreen').classList.remove('active');
+            document.getElementById('newAdScreen').classList.remove('active');
+            document.getElementById('newArticleScreen').classList.remove('active');
+            document.getElementById('newPostScreen').classList.remove('active');
+            document.getElementById('newTweetScreen').classList.remove('active');
+        }
+
+        // --- CONTACTS FUNCTIONS ---
+
+        function loadContacts() {
+            const list = document.getElementById('contactsList');
+            if (contacts.length === 0) {
+                list.innerHTML = '<div style="padding: 20px; text-align: center; color: #8e8e93;">Aucun contact.</div>';
+                return;
+            }
+            list.innerHTML = contacts.sort((a, b) => a.name.localeCompare(b.name)).map(c => `
+                <div class="contact-item" onclick="openConversation('${c.number}', '${c.name}')">
+                    <div style="flex: 1;">
+                        <div class="list-item-title">${c.name}</div>
+                        <div class="list-item-desc">${c.number}</div>
+                    </div>
+                    <button class="back-btn" style="width: 35px; height: 35px;">📞</button>
+                </div>
+            `).join('');
+        }
+
+        function searchContacts() {
+             const query = document.getElementById('contactSearch').value.toLowerCase();
+             const filtered = contacts.filter(c => 
+                 c.name.toLowerCase().includes(query) || c.number.includes(query)
+             );
+             renderContacts(filtered);
+        }
+
+        function renderContacts(data) {
+             const list = document.getElementById('contactsList');
+             list.innerHTML = data.map(c => `
+                <div class="contact-item" onclick="openConversation('${c.number}', '${c.name}')">
+                    <div style="flex: 1;">
+                        <div class="list-item-title">${c.name}</div>
+                        <div class="list-item-desc">${c.number}</div>
+                    </div>
+                    <button class="back-btn" style="width: 35px; height: 35px;">📞</button>
+                </div>
+            `).join('');
+        }
+
+        function showAddContact() {
+            document.getElementById('contactsScreen').classList.remove('active');
+            document.getElementById('addContactScreen').classList.add('active');
+        }
+        
+        function backToContacts() {
+            document.getElementById('addContactScreen').classList.remove('active');
+            document.getElementById('contactsScreen').classList.add('active');
+            loadContacts();
+        }
+
+        function addContact() {
+            const name = document.getElementById('newContactName').value.trim();
+            const number = document.getElementById('newContactNumber').value.trim();
+            
+            if (!name || !number) {
+                alert('Veuillez remplir tous les champs');
+                return;
+            }
+            
+            contacts.push({ name, number });
+            // Sort contacts alphabetically
+            contacts.sort((a, b) => a.name.localeCompare(b.name));
+            
+            document.getElementById('newContactName').value = '';
+            document.getElementById('newContactNumber').value = '';
+            
+            backToContacts();
+            alert(`✅ Contact ${name} ajouté !`);
+        }
+
+        // --- MESSAGES FUNCTIONS ---
+
+        function loadMessagesList() {
+            // Placeholder: The actual implementation of conversations would be complex
+            // For RP, we keep a simple list of recent chats
+            // The HTML structure already has placeholders, no JS update needed for this simple version.
+        }
+
+        function openConversation(number, name) {
+            document.getElementById('conversationTitle').textContent = name;
+            document.getElementById('messagesScreen').classList.remove('active');
+            document.getElementById('conversationScreen').classList.add('active');
+            // The chat window content would be loaded here in a real application
+        }
+
+        function backToMessages() {
+            document.getElementById('conversationScreen').classList.remove('active');
+            document.getElementById('messagesScreen').classList.add('active');
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const chatWindow = document.getElementById('chatWindow');
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble sent';
+            bubble.textContent = message;
+            chatWindow.appendChild(bubble);
+
+            input.value = '';
+            chatWindow.scrollTop = chatWindow.scrollHeight; // Scroll to bottom
+        }
+        
+        // --- TWITTER FUNCTIONS ---
+
+        function loadTwitter() {
+            const list = document.getElementById('tweetsList');
+            list.innerHTML = tweets.sort((a, b) => b.timestamp - a.timestamp).map(t => `
+                <div class="tweet-card">
+                    <div class="tweet-header">
+                        <div class="tweet-avatar" style="background: ${t.color || '#1da1f2'};">${t.user[0]}</div>
+                        <div><div class="tweet-name">${t.user}</div><div class="tweet-user">${t.handle}</div></div>
+                    </div>
+                    <div class="tweet-content">${t.content}</div>
+                    <div class="tweet-footer">${timeSince(t.timestamp)}</div>
+                </div>
+            `).join('');
+        }
+
+        function showNewTweet() {
+             document.getElementById('twitterScreen').classList.remove('active');
+             document.getElementById('newTweetScreen').classList.add('active');
+        }
+        
+        function backToTwitter() {
+            document.getElementById('newTweetScreen').classList.remove('active');
+            document.getElementById('twitterScreen').classList.add('active');
+        }
+        
+        function updateCharCount() {
+            const input = document.getElementById('tweetContent');
+            const count = 280 - input.value.length;
+            document.getElementById('charCount').textContent = count;
+        }
+
+        async function postTweet() {
+            const content = document.getElementById('tweetContent').value.trim();
+            if (!content) { alert('Veuillez écrire un Tweet.'); return; }
+
+            const newTweet = {
+                user: currentUser.firstName,
+                handle: `@${currentUser.firstName.toLowerCase()}_${currentUser.phone.slice(-4)}`,
+                content: content,
+                timestamp: Date.now(),
+                color: `#${Math.floor(Math.random()*16777215).toString(16)}`
+            };
+            
+            tweets.unshift(newTweet); // Add to top
+            
+            // In a real FiveM scenario, this would post to a global chat
+            document.getElementById('tweetContent').value = '';
+            backToTwitter();
+            loadTwitter();
+            alert(`✅ Tweet publié !`);
+        }
+
+        function timeSince(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            let interval = seconds / 31536000;
+            if (interval > 1) return Math.floor(interval) + " ans";
+            interval = seconds / 2592000;
+            if (interval > 1) return Math.floor(interval) + " mois";
+            interval = seconds / 86400;
+            if (interval > 1) return Math.floor(interval) + " jours";
+            interval = seconds / 3600;
+            if (interval > 1) return Math.floor(interval) + " heures";
+            interval = seconds / 60;
+            if (interval > 1) return Math.floor(interval) + " minutes";
+            return Math.floor(seconds) + " secondes";
+        }
+
+
+        // --- BANK FUNCTIONS (Simulated persistence) ---
+
+        async function loadBankBalance() {
+            // Load from storage simulation or default
+            if (window.storage && window.storage.get) {
+                 try {
+                    const result = await window.storage.get(`balance:${currentUser.phone}`, false);
+                    balance = result ? parseInt(result.value) : 5000;
+                } catch (e) {
+                    balance = 5000;
+                }
+            } else {
+                balance = parseInt(localStorage.getItem(`iRPPhone_balance_${currentUser.phone}`)) || 5000;
+            }
+        }
+
+        function generateFakeNumber(length) {
+            let result = '';
+            for (let i = 0; i < length; i++) { result += Math.floor(Math.random() * 10); }
+            return result;
+        }
+
+        function generateRIB(phone) {
+            const ribKey = `iRPPhone_rib_${phone}`;
+            let rib = localStorage.getItem(ribKey);
+            if (rib) return rib;
+
+            const phonePart = phone.replace(/-/g, '').slice(-7).padStart(7, '0');
+            const bankCode = '01234';
+            const branchCode = generateFakeNumber(5);
+            const accountBase = phonePart + generateFakeNumber(4);
+            const key = generateFakeNumber(2);
+            rib = `${bankCode} ${branchCode} ${accountBase} ${key}`;
+            localStorage.setItem(ribKey, rib);
+            return rib;
+        }
+
+        function loadBankData() {
+            const rib = generateRIB(currentUser.phone);
+
+            document.getElementById('bankBalance').textContent = `$${balance.toLocaleString()}`;
+            document.getElementById('bankHolderName').textContent = currentUser.fullName;
+            document.getElementById('bankAccountNumber').textContent = rib.slice(12, 23);
+            document.getElementById('bankRIB').textContent = rib;
+        }
+
+        function showTransfer() {
+            document.getElementById('bankScreen').classList.remove('active');
+            document.getElementById('transferScreen').classList.add('active');
+        }
+
+        function backToBank() {
+            document.getElementById('transferScreen').classList.remove('active');
+            document.getElementById('bankScreen').classList.add('active');
+            loadBankData();
+        }
+
+        async function executeTransfer() {
+            const number = document.getElementById('transferNumber').value.trim();
+            const amount = parseInt(document.getElementById('transferAmount').value);
+            
+            if (!number || !amount || amount <= 0) { alert('Veuillez remplir tous les champs correctement'); return; }
+            if (amount > balance) { alert('Solde insuffisant'); return; }
+            
+            balance -= amount;
+            
+            if (window.storage && window.storage.set) {
+                await window.storage.set(`balance:${currentUser.phone}`, balance.toString(), false);
+            } else {
+                 localStorage.setItem(`iRPPhone_balance_${currentUser.phone}`, balance);
+            }
+            
+            alert(`✅ Virement de $${amount.toLocaleString()} envoyé à ${number}`);
+            backToBank();
+        }
+
+        // --- CRYPTO FUNCTIONS (Simulated persistence) ---
+
+        function updateRPcoinPrice() {
+            const volatility = 0.05;
+            const change = (Math.random() * 2 * volatility) - volatility;
+            RPcoinPrice = Math.round(RPcoinPrice * (1 + change));
+
+            const changeEl = document.getElementById('RPcoinChange');
+            const priceEl = document.getElementById('RPcoinPrice');
+            const valueEl = document.getElementById('cryptoValue');
+
+            const isUp = change >= 0;
+            changeEl.textContent = isUp ? `+${(change * 100).toFixed(2)}%` : `${(change * 100).toFixed(2)}%`;
+            changeEl.className = `crypto-change ${isUp ? 'up' : 'down'}`;
+            priceEl.textContent = `$${RPcoinPrice.toLocaleString()}`;
+            valueEl.textContent = `$${(RPcoin * RPcoinPrice).toLocaleString()}`;
+
+            localStorage.setItem('iRPPhone_RPcoinPrice', RPcoinPrice);
+        }
+        setInterval(updateRPcoinPrice, 30000); 
+
+        function loadCryptoData() {
+            RPcoinPrice = parseInt(localStorage.getItem('iRPPhone_RPcoinPrice')) || 1000;
+            RPcoin = parseFloat(localStorage.getItem(`iRPPhone_RPcoinBalance_${currentUser.phone}`)) || 0;
+
+            document.getElementById('RPcoinBalance').textContent = RPcoin.toFixed(2);
+            updateRPcoinPrice();
+        }
+
+        async function buyCrypto() {
+            const amount = parseInt(document.getElementById('cryptoAmount').value);
+            if (!amount || amount <= 0) { alert('Montant invalide.'); return; }
+            if (amount > balance) { alert('Solde bancaire insuffisant.'); return; }
+
+            const coinsBought = amount / RPcoinPrice;
+            
+            balance -= amount;
+            RPcoin += coinsBought;
+            
+            if (window.storage && window.storage.set) {
+                await window.storage.set(`balance:${currentUser.phone}`, balance.toString(), false);
+            } else {
+                 localStorage.setItem(`iRPPhone_balance_${currentUser.phone}`, balance);
+            }
+            localStorage.setItem(`iRPPhone_RPcoinBalance_${currentUser.phone}`, RPcoin.toFixed(2));
+            
+            document.getElementById('cryptoAmount').value = '';
+            loadBankData();
+            loadCryptoData();
+            alert(`✅ Achat de ${coinsBought.toFixed(2)} RPC pour $${amount.toLocaleString()}.`);
+        }
+
+        async function sellCrypto() {
+            const amount = parseInt(document.getElementById('cryptoAmount').value);
+            if (!amount || amount <= 0) { alert('Montant invalide.'); return; }
+            
+            const coinsToSell = amount / RPcoinPrice;
+
+            if (coinsToSell > RPcoin) { alert('Quantité de RPC insuffisante.'); return; }
+            
+            balance += amount;
+            RPcoin -= coinsToSell;
+
+            if (window.storage && window.storage.set) {
+                await window.storage.set(`balance:${currentUser.phone}`, balance.toString(), false);
+            } else {
+                 localStorage.setItem(`iRPPhone_balance_${currentUser.phone}`, balance);
+            }
+            localStorage.setItem(`iRPPhone_RPcoinBalance_${currentUser.phone}`, RPcoin.toFixed(2));
+
+            document.getElementById('cryptoAmount').value = '';
+            loadBankData();
+            loadCryptoData();
+            alert(`✅ Vente de ${coinsToSell.toFixed(2)} RPC pour $${amount.toLocaleString()}.`);
+        }
+
+
+        // --- WEAZEL NEWS FUNCTIONS ---
+
+        function showNewArticle() {
+             document.getElementById('weazelScreen').classList.remove('active');
+             document.getElementById('newArticleScreen').classList.add('active');
+        }
+
+        function backToWeazel() {
+            document.getElementById('newArticleScreen').classList.remove('active');
+            document.getElementById('weazelScreen').classList.add('active');
+        }
+
+        async function loadNews() {
+            const list = document.getElementById('newsList');
+            // Check storage first, default to local array if storage not available
+            if (window.storage && window.storage.get) {
+                 try {
+                    const result = await window.storage.get('global:articles', true);
+                    articles = result ? JSON.parse(result.value) : articles;
+                } catch (e) { /* Fallback to local array */ }
+            }
+            
+            if (articles.length === 0) {
+                 articles = [
+                    { title: 'Ouverture du Casino Diamond', desc: 'Le grand casino est enfin ouvert! Venez parier.', timestamp: Date.now() - 86400000, author: 'Weazel News' },
+                    { title: 'Taux d\'imposition en hausse', desc: 'Le gouvernement augmente les taxes de 5% ce mois-ci.', timestamp: Date.now() - 3600000, author: 'Gouvernement' },
+                ];
+            }
+            
+            list.innerHTML = articles.sort((a, b) => b.timestamp - a.timestamp).map(a => `
+                <div class="list-item">
+                    <div style="flex: 1;">
+                        <div class="list-item-title">${a.title}</div>
+                        <div class="list-item-desc">${a.desc} - Publié par ${a.author}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function publishArticle() {
+            const title = document.getElementById('articleTitle').value.trim();
+            const content = document.getElementById('articleContent').value.trim();
+            if (!title || !content) { alert('Veuillez ajouter un titre et un contenu.'); return; }
+
+            const newArticle = {
+                title: title,
+                desc: content.substring(0, 100) + (content.length > 100 ? '...' : ''),
+                timestamp: Date.now(),
+                author: currentUser.fullName
+            };
+
+            articles.push(newArticle);
+            
+            if (window.storage && window.storage.set) {
+                try {
+                    await window.storage.set('global:articles', JSON.stringify(articles), true);
+                } catch (e) { /* Error handling */ }
+            }
+            
+            document.getElementById('articleTitle').value = '';
+            document.getElementById('articleContent').value = '';
+            backToWeazel();
+            loadNews();
+            alert(`✅ Article "${title}" publié !`);
+        }
+
+        // --- INSTAGRAM FUNCTIONS ---
+        
+        function showNewPost() {
+             document.getElementById('instagramScreen').classList.remove('active');
+             document.getElementById('newPostScreen').classList.add('active');
+        }
+
+        function backToInstagram() {
+            document.getElementById('newPostScreen').classList.remove('active');
+            document.getElementById('instagramScreen').classList.add('active');
+        }
+
+        async function loadInstagram() {
+            const feed = document.getElementById('instagramFeed');
+            
+            if (window.storage && window.storage.get) {
+                 try {
+                    const result = await window.storage.get('global:posts', true);
+                    posts = result ? JSON.parse(result.value) : posts;
+                } catch (e) { /* Fallback to local array */ }
+            }
+
+            if (posts.length === 0) {
+                 posts = [
+                    { user: 'LS_Police_Officiel', caption: "Nouveau véhicule de patrouille en service! Soyez prudents.", likes: 120, timestamp: Date.now() - 3600000, color: '#0066cc', hasLiked: false },
+                    { user: 'Vinewood_Gossip', caption: "Qui sera à la soirée du Diamond Casino ce soir?", likes: 34, timestamp: Date.now() - 7200000, color: '#ff2d55', hasLiked: true },
+                ];
+            }
+            
+            feed.innerHTML = posts.sort((a, b) => b.timestamp - a.timestamp).map((p, index) => `
+                <div class="post-card">
+                    <div class="post-header">
+                        <div class="tweet-avatar" style="background: ${p.color || '#833ab4'};">${p.user[1]}</div>
+                        <div class="tweet-name">${p.user}</div>
+                    </div>
+                    <div class="post-img" style="background: ${p.color || '#833ab4'};">📸</div>
+                    <div class="post-actions">
+                        <span onclick="likePost(${index})" style="color: ${p.hasLiked ? '#ff3b30' : 'inherit'}; cursor: pointer;">${p.hasLiked ? '❤️' : '🤍'}</span>
+                        <span>💬</span>
+                        <span>✈️</span>
+                    </div>
+                    <div class="post-likes">${p.likes} J'aime</div>
+                    <div class="post-caption"><strong>${p.user}</strong> ${p.caption}</div>
+                </div>
+            `).join('');
+        }
+
+        async function likePost(index) {
+            const post = posts[index];
+            if (post.hasLiked) {
+                post.likes--;
+            } else {
+                post.likes++;
+            }
+            post.hasLiked = !post.hasLiked;
+            
+            if (window.storage && window.storage.set) {
+                try {
+                    await window.storage.set('global:posts', JSON.stringify(posts), true);
+                } catch (e) {}
+            }
+            loadInstagram();
+        }
+
+        async function publishPost() {
+            const caption = document.getElementById('postCaption').value.trim();
+            if (!caption) { alert('Veuillez ajouter une légende.'); return; }
+
+            const newPost = {
+                user: `@${currentUser.firstName}_RP`,
+                caption: caption,
+                likes: 0,
+                timestamp: Date.now(),
+                color: `#${Math.floor(Math.random()*16777215).toString(16)}`,
+                hasLiked: false
+            };
+
+            posts.unshift(newPost);
+            
+            if (window.storage && window.storage.set) {
+                try {
+                    await window.storage.set('global:posts', JSON.stringify(posts), true);
+                } catch (e) {}
+            }
+            
+            document.getElementById('postCaption').value = '';
+            backToInstagram();
+            loadInstagram();
+            alert(`✅ Publication Instagram envoyée !`);
+        }
+
+        // --- YELLOW PAGES FUNCTIONS ---
+
+        function loadYellowPages() {
+            renderYellowPages(yellowPagesData);
+        }
+
+        function searchYellowPages() {
+            const query = document.getElementById('searchYellowPages').value.toLowerCase();
+            const filteredData = yellowPagesData.filter(item => 
+                item.name.toLowerCase().includes(query) || 
+                item.desc.toLowerCase().includes(query) ||
+                item.phone.includes(query)
+            );
+            renderYellowPages(filteredData);
+        }
+
+        function renderYellowPages(data) {
+            const list = document.getElementById('yellowPagesList');
+            if (data.length === 0) {
+                list.innerHTML = '<div style="padding: 40px; text-align: center; color: #8e8e93;">Aucun résultat trouvé.</div>';
+                return;
+            }
+
+            list.innerHTML = data.map(item => `
+                <div class="list-item" onclick="openConversation('${item.phone}', '${item.name}')">
+                    <div style="flex: 1;">
+                        <div class="list-item-title">
+                            ${item.type === 'service' ? '🚨' : '🛒'} ${item.name}
+                        </div>
+                        <div class="list-item-desc">${item.desc}</div>
+                    </div>
+                    <div style="font-weight: 700; color: #007aff;">${item.phone}</div>
+                </div>
+            `).join('');
+        }
+
+        // --- SETTINGS FUNCTIONS ---
+        function loadSettings() {
+            document.getElementById('settingsName').textContent = currentUser.fullName;
+            document.getElementById('settingsPhone').textContent = currentUser.phone;
+            document.getElementById('darkModeToggle').checked = isDarkMode;
+        }
+        
+        // --- OTHER SIMPLIFIED APPS ---
+        function loadVehicles() { /* Logic for loading vehicles from server */ }
+        function loadProperties() { /* Logic for loading properties from server */ }
+        function loadAds() { /* Logic for loading marketplace ads */ }
+        function showNewAd() { 
+            document.getElementById('marketScreen').classList.remove('active');
+            document.getElementById('newAdScreen').classList.add('active');
+        }
+        function backToMarket() {
+            document.getElementById('newAdScreen').classList.remove('active');
+            document.getElementById('marketScreen').classList.add('active');
+        }
+        function publishAd() { alert('Annonce publiée ! (Simulation)'); backToMarket(); }
+        function loadJobs() { /* Logic for loading jobs */ }
+
+        // --- INIT ---
+
+        window.onload = function() {
+            const storedUser = localStorage.getItem('iRPPhone_user');
+            if (storedUser) {
+                currentUser = JSON.parse(storedUser);
+                document.getElementById('setupScreen').classList.add('hidden');
+                loadBankBalance();
+                loadCryptoData();
+            }
+
+            // Dark Mode check on load
+            const storedDarkMode = localStorage.getItem('iRPPhone_darkMode');
+            if (storedDarkMode === 'true') {
+                isDarkMode = true;
+                document.body.classList.add('dark-mode');
+            }
+        }
+    </script>
+</body>
+</html>
